@@ -1,37 +1,63 @@
 'use client';
 
 import Image from 'next/image';
+import { MouseEventHandler } from 'react';
 import { Expand, ShoppingCart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import { Product } from '@/types';
-import { IconButton } from '@/components/ui/icon-button';
 import { Currency } from '@/components/ui/currency';
+import { IconButton } from '@/components/ui/icon-button';
+import { usePreviewModal } from '@/hooks/use-preview-modal';
+import useCart from '@/hooks/use-cart';
+import { Product } from '@/types';
 
-interface ProductCardProps {
+interface ProductCard {
 	data: Product;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ data }) => {
+export const ProductCard: React.FC<ProductCard> = ({ data }) => {
+	const previewModal = usePreviewModal();
+	const cart = useCart();
+	const router = useRouter();
+
+	const handleClick = () => {
+		router.push(`/product/${data?.id}`);
+	};
+
+	const onPreview: MouseEventHandler<HTMLButtonElement> = (event) => {
+		// prevent event bubbling: not trigger parent element 'handleClick'
+		event.stopPropagation();
+
+		previewModal.onOpen(data);
+	};
+
+	const onAddToCart: MouseEventHandler<HTMLButtonElement> = (event) => {
+		event.stopPropagation();
+
+		cart.addItem(data);
+	};
+
 	return (
-		<div className="bg-white group cursor-pointer rounded-xl border p-3 space-y-4">
-			{/* Images and Actions */}
+		<div
+			onClick={handleClick}
+			className="bg-white group cursor-pointer rounded-xl border p-3 space-y-4"
+		>
+			{/* Image & actions */}
 			<div className="aspect-square rounded-xl bg-gray-100 relative">
 				<Image
-					src={data.images?.[0]?.url} // preview first image
-					alt="Image"
+					src={data.images?.[0]?.url}
+					alt=""
 					fill
 					className="aspect-square object-cover rounded-md"
 				/>
-				{/* (trick) 'group-hover': trigger on children when hover parent element (has 'group') */}
-				{/* diplays 3 hidden button when user hover products */}
 				<div className="opacity-0 group-hover:opacity-100 transition absolute w-full px-6 bottom-5">
 					<div className="flex gap-x-6 justify-center">
 						<IconButton
-							onClick={() => {}}
+							onClick={onPreview}
 							icon={<Expand size={20} className="text-gray-600" />}
 						/>
 						<IconButton
-							onClick={() => {}}
+							onClick={onAddToCart}
 							icon={<ShoppingCart size={20} className="text-gray-600" />}
 						/>
 					</div>
